@@ -7,8 +7,9 @@
 --          modify it under the same terms as Lua5 itself.           --
 -- ----------------------------------------------------------------- --
 local M = {} -- public interface
-M.Version = '1.07'
-M.VersionDate = '20aug2010'
+M.Version = '1.08'  -- function deepcopy is now local
+M.VersionDate = '20150425'
+-- 20150425 1.08 function deepcopy is now local; works with lua5.3
 
 -- Example usage:
 -- local RK = require 'RungeKutta'
@@ -73,7 +74,7 @@ function M.rk2(yn, dydt, t, dt)
 	end
 	return t+dt, ynp1
 end
-function deepcopy(object)  -- http://lua-users.org/wiki/CopyTable
+local function deepcopy(object)  -- http://lua-users.org/wiki/CopyTable
     local lookup_table = {}
     local function _copy(object)
         if type(object) ~= "table" then
@@ -212,7 +213,7 @@ function M.rk4_auto(yn, dydt, t, dt, arg4)
 	 			if relative_error < diff then relative_error = diff end
 	 		end
 		else
-			die "RungeKutta.rk4_auto: \$epsilon & \@errors both undefined\n";
+			die "RungeKutta.rk4_auto: epsilon & errors both undefined\n";
 		end
 		-- Gear's "correction" assumes error is always in 5th-order terms :-(
 		-- $y1[$i] = (16.0*$y3{$i] - $y1[$i]) / 15.0;
@@ -421,13 +422,13 @@ be helpful in solving systems of differential equations which arise
 within a I<Lua> context, such as economic, financial, demographic
 or ecological modelling, mechanical or process dynamics, etc.
 
-Version 1.07
+Version 1.08
 
 =head1 FUNCTIONS
 
 =over 3
 
-=item I<rk2>(y, dydt, t, dt )
+=item I<rk2>( y, dydt, t, dt )
 
 where the arguments are:
  I<y> an array of initial values of variables,
@@ -570,32 +571,6 @@ the extra function evaluation.
 
 =back
 
-=head1 EXAMPLES
-
-There are a couple of example Perl scripts in the I<./examples/>
-subdirectory of the build directory.
-You can use their code to help you get your first application going.
-
-=over 3
-
-=item I<sine-cosine>
-
-This script uses I<Term::Clui> (arrow keys and Return, or q to quit)
-to offer a selection of algorithms, timesteps and error criteria for
-the integration of a simple sine/cosine wave around one complete cycle.
-This was the script used as a testbed during development.
-
-=item I<three-body>
-
-This script uses the vt100 or xterm 'moveto' and 'reverse'
-sequences to display a little simulation of three-body gravity.
-It uses I<rk4_auto> because a shorter timestep is needed when
-two bodies are close to each other. It also uses I<rk4_auto_midpoint>
-to smooth the display.  By changing the initial conditions you
-can experience how sensitively the outcome depends on them.
-
-=back
-
 =head1 TRAPS FOR THE UNWARY
 
 Alas, things can go wrong in numerical integration.
@@ -619,8 +594,8 @@ equilibrium is present and solve the long-term problem on its own.
 Similarly, numerical integration doesn't enjoy problems where
 time-constants change suddenly, such as balls bouncing off hard
 surfaces, etc. You can often tackle these by intervening directly
-in the I<@y> array between each timestep. For example, if I<$y[17]>
-is the height of the ball above the floor, and I<$y[20]> is the
+in the I<y> array between each timestep. For example, if I<y[17]>
+is the height of the ball above the floor, and I<y[20]> is the
 vertical component of the velocity, do something like
 
  if y[17]<0.0 then y[17] = -0.9*y[17]; y[20] = -0.9*y[20] end
@@ -628,46 +603,14 @@ vertical component of the velocity, do something like
 and thus, again, let the numerical integration solve just the
 smooth part of the problem.
 
-=head1 JAVASCRIPT
+=head1 INSTALLATION
 
-In the C<js/> subdirectory of the install directory there is I<RungeKutta.js>,
-which is an exact translation of this Perl code into JavaScript.
-The function names and arguments are unchanged.
-Brief Synopsis:
+This module is available as a LuaRock:
+http://luarocks.org/modules/peterbillam/math-rungekutta
 
- <SCRIPT type="text/javascript" src="RungeKutta.js"> </SCRIPT>
- <SCRIPT type="text/javascript">
- var dydt = function (t, y) {  // the derivative function
-    var dydt_array = new Array(y.length); ... ; return dydt_array;
- }
- var y = new Array();
-
- // For automatic timestep adjustment ...
- y = initial_y(); var t=0; var dt=0.4;  // the initial conditions
- // Arrays of return vaules:
- var tmp_end = new Array(3);  var tmp_mid = new Array(2);
- while (t < tfinal) {
-    tmp_end = rk4_auto(y, dydt, t, dt, 0.00001);
-    tmp_mid = rk4_auto_midpoint();
-    t=tmp_mid[0]; y=tmp_mid[1];
-    display(t, y);   // e.g. could use wz_jsgraphics.js or SVG
-    t=tmp_end[0]; dt=tmp_end[1]; y=tmp_end[2];
-    display(t, y);
- }
-
- // Or, for fixed timesteps ...
- y = post_ww2_y(); var t=1945; var dt=1;  // start in 1945
- var tmp = new Array(2);  // Array of return values
- while (t <= 2100) {
-    tmp = rk4(y, dydt, t, dt);  // Merson's 4th-order method
-    t=tmp[0]; y=tmp[1];
-    display(t, y);
- }
- </SCRIPT>
-
-I<RungeKutta.js> uses several global variables
-which all begin with the letters C<_rk_> so you should
-avoid introducing variables beginning with these characters.
+Or, the source is available in
+http://cpansearch.perl.org/src/PJB/Math-RungeKutta-1.08/lua/
+for you to install by hand in your LUA_PATH
 
 =head1 AUTHOR
 
@@ -693,14 +636,14 @@ C. William Gear, Prentice-Hall, 1971
 
 =head1 SEE ALSO
 
-See also the scripts examples/sine-cosine and examples/three-body,
-http://www.pjb.com.au/,
-http://www.pjb.com.au/comp/,
-Math::WalshTransform,
-Math::Evol,
-Term::Clui,
-Crypt::Tea_JS,
-http://www.xmds.org/
+ http://www.pjb.com.au/
+ http://www.pjb.com.au/comp/
+ http://search.cpan.org/perldoc?Math::RungeKutta
+ http://www.pjb.com.au/comp/lua/WalshTransform.html
+ http://search.cpan.org/perldoc?Math::WalshTransform
+ http://www.pjb.com.au/comp/lua/Evol.html
+ http://search.cpan.org/perldoc?Math::Evol
+ http://www.xmds.org/
 
 =cut
 ]]
