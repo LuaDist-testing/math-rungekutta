@@ -1,10 +1,10 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "math-rungekutta"
-version = "1.07-1"
+version = "1.07-2"
 -- LuaDist source
 source = {
-  tag = "1.07-1",
+  tag = "1.07-2",
   url = "git://github.com/LuaDist-testing/math-rungekutta.git"
 }
 -- Original source
@@ -19,7 +19,7 @@ description = {
       where Y is an array of variables whose initial values Y(0) are
       known, and F is a function known from the dynamics of the problem.
    ]],
-   homepage = "http://cpansearch.perl.org/src/PJB/",
+   homepage = "http://www.pjb.com.au/comp/lua/RungeKutta.html",
    license = "MIT/X11"
 }
 dependencies = {
@@ -28,6 +28,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      Evol = "RungeKutta.lua"
+      ["Math.RungeKutta"] = "RungeKutta.lua"
    },
 }
